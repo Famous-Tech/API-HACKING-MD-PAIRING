@@ -22,13 +22,11 @@ const WELCOME_MESSAGE = `
 ╚════════════════════════╝
 `;
 
-// Fonction pour nettoyer le numéro de téléphone
-function cleanPhoneNumber(number) {
-    return number.replace(/[^0-9]/g, ''); // Supprime tout sauf les chiffres
-}
-
 async function validatePhoneNumber(number) {
-    const cleanedNumber = cleanPhoneNumber(number); // Nettoyer le numéro avant validation
+    // Nettoyer le numéro en supprimant tout ce qui n'est pas un chiffre
+    const cleanedNumber = number.replace(/\D/g, '');
+    
+    // Valider le numéro nettoyé
     const pn = phoneNumber(cleanedNumber);
     return pn.isValid();
 }
@@ -58,7 +56,9 @@ router.get('/', async (req, res) => {
                 });
             }
 
-            const cleanedNumber = cleanPhoneNumber(number); // Nettoyer le numéro avant utilisation
+            // Nettoyer le numéro
+            const cleanedNumber = number.replace(/\D/g, '');
+
             if (!await validatePhoneNumber(cleanedNumber)) {
                 return res.status(400).json({ 
                     status: false, 
