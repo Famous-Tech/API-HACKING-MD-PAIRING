@@ -6,7 +6,7 @@ const pino = require('pino');
 const fs = require('fs-extra');
 const qrcode = require('qrcode');
 const phoneNumber = require('awesome-phonenumber');
-const path = require('path'); // Ajoutez cette ligne pour importer le module path
+const path = require('path');
 
 const WELCOME_MESSAGE = `
 ╔════◇
@@ -22,8 +22,14 @@ const WELCOME_MESSAGE = `
 ╚════════════════════════╝
 `;
 
+// Fonction pour nettoyer le numéro de téléphone
+function cleanPhoneNumber(number) {
+    return number.replace(/[^0-9]/g, ''); // Supprime tout sauf les chiffres
+}
+
 async function validatePhoneNumber(number) {
-    const pn = phoneNumber(number);
+    const cleanedNumber = cleanPhoneNumber(number); // Nettoyer le numéro avant validation
+    const pn = phoneNumber(cleanedNumber);
     return pn.isValid();
 }
 
@@ -45,7 +51,15 @@ router.get('/', async (req, res) => {
             });
 
         if (mode === 'pair') {
-            if (!number || !await validatePhoneNumber(number)) {
+            if (!number) {
+                return res.status(400).json({ 
+                    status: false, 
+                    error: "Numéro de téléphone requis" 
+                });
+            }
+
+            const cleanedNumber = cleanPhoneNumber(number); // Nettoyer le numéro avant utilisation
+            if (!await validatePhoneNumber(cleanedNumber)) {
                 return res.status(400).json({ 
                     status: false, 
                     error: "Numéro de téléphone invalide" 
@@ -53,11 +67,11 @@ router.get('/', async (req, res) => {
             }
 
             try {
-                const code = await sock.requestPairingCode(number);
+                const code = await sock.requestPairingCode(cleanedNumber);
                 // Enregistrement dans PostgreSQL
                 await pool.query(
                     'INSERT INTO connections (phone_number, connection_type) VALUES ($1, $2)',
-                    [number, 'pair']
+                    [cleanedNumber, 'pair']
                 );
                 res.json({ status: true, code });
             } catch (error) {
