@@ -6,6 +6,7 @@ const pino = require('pino');
 const fs = require('fs-extra');
 const qrcode = require('qrcode');
 const phoneNumber = require('awesome-phonenumber');
+const path = require('path'); // Ajoutez cette ligne pour importer le module path
 
 const WELCOME_MESSAGE = `
 ╔════◇
